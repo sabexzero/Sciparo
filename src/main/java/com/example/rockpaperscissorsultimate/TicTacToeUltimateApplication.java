@@ -1,4 +1,4 @@
-package com.example.tictactoeultimate;
+package com.example.rockpaperscissorsultimate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.example.tictactoeultimate;
+package com.example.rockpaperscissorsultimate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

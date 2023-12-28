@@ -1,6 +1,7 @@
-package com.example.tictactoeultimate.models;
+package com.example.rockpaperscissorsultimate.models;
 
 
+import com.example.rockpaperscissorsultimate.utils.enums.GameStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
