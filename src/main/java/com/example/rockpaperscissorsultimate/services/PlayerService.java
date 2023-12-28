@@ -1,15 +1,16 @@
-package com.example.tictactoeultimate.services;
+package com.example.rockpaperscissorsultimate.services;
 
-import com.example.tictactoeultimate.dtos.CreatePlayerRequest;
-import com.example.tictactoeultimate.models.Player;
-import com.example.tictactoeultimate.repositories.PlayerRepository;
+import com.example.rockpaperscissorsultimate.utils.dtos.CreatePlayerRequest;
+import com.example.rockpaperscissorsultimate.utils.exceptions.Player.CreatePlayerFailedException;
+import com.example.rockpaperscissorsultimate.utils.exceptions.Player.PlayerNotFoundException;
+import com.example.rockpaperscissorsultimate.models.Player;
+import com.example.rockpaperscissorsultimate.repositories.PlayerRepository;
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,8 +23,8 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final PasswordEncoder passwordEncoder;
     
-    public Player createPlayer(CreatePlayerRequest request){
-        String passwordHash = passwordEncoder.encode(request.getPassword());
+    public Player createPlayer(@NotNull CreatePlayerRequest request){
+        String passwordHash = passwordEncoder.encode(request.getPasswordText());
         
         Player newPlayer = Player.builder()
                 .username(request.getUsername())
@@ -35,7 +36,13 @@ public class PlayerService {
                 .loses(0)
                 .wins(0)
                 .build();
-        return playerRepository.save(newPlayer);
+        
+        try{
+            return playerRepository.save(newPlayer);
+        }catch (Exception exception){
+            throw new CreatePlayerFailedException("An error occurred when registering a player");
+        }
+
     }
     
     public List<Player> getAllPlayers(){
@@ -43,9 +50,19 @@ public class PlayerService {
     }
     
     public Player getPlayerById(UUID id){
-        return playerRepository.findById(id).orElse(null);
+        var player = playerRepository.findById(id).orElse(null);
+        if(player == null)
+            throw new PlayerNotFoundException("The player was not found");
+        return player;
     }
     
+    public Player getPlayerByName(String findName){
+    var player = playerRepository.findByUsername(findName);
+        if(player == null)
+            throw new PlayerNotFoundException("The player was not found");
+        return player;
+    }
+
     public Player updatePlayer(Player entity){
         return playerRepository.save(entity);
     }

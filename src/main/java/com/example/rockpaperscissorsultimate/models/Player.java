@@ -1,5 +1,4 @@
-package com.example.tictactoeultimate.models;
-
+package com.example.rockpaperscissorsultimate.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +10,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+import static com.example.rockpaperscissorsultimate.utils.constants.PlayerConstants.ELO_CHANGE;
+import static com.example.rockpaperscissorsultimate.utils.constants.PlayerConstants.ELO_MINIMUM;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,13 +22,33 @@ public class Player {
     @Id
     @GeneratedValue
     private UUID id;
+    
     private String username;
+    
     private String name;
+    
     private String email;
+    
     private int wins;
+    
     private int loses;
+    
     private int draws;
+    
     private int elo;
+    
     private Long coins;
+    
     private String passwordHash;
+    
+    public void ChangeBalance(long bet){
+        coins+=bet;
+    }
+    public void IncreaseElo(){
+        elo+= ELO_CHANGE;
+    }
+    
+    public void DecreaseElo(){
+
+    }
 }
