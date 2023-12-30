@@ -1,6 +1,5 @@
 package com.example.rockpaperscissorsultimate.services;
 
-import com.example.rockpaperscissorsultimate.utils.enums.Outcome;
 import com.example.rockpaperscissorsultimate.models.Player;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,15 +12,14 @@ import static com.example.rockpaperscissorsultimate.utils.constants.PlayerConsta
 public class EloService {
     private final PlayerService playerService;
     
-    public Player updatePlayerElo(Player entity, Outcome outcome){
-        int deltaElo = outcome.equals(Outcome.WIN) ? ELO_CHANGE : -ELO_CHANGE;
+    public void updatePlayerElo(Player entity, boolean isWinner){
+        int deltaElo = isWinner ? ELO_CHANGE : ELO_CHANGE * -1; // Если проигрыш, изменение ELO будет отрицательным
         entity.setElo(getChangedElo(entity.getElo(), deltaElo));
-        return playerService.updatePlayer(entity);
+        playerService.updatePlayer(entity);
     }
     
     private static int getChangedElo(int initialElo, int deltaElo){
-        return Math.max(initialElo + ELO_CHANGE, ELO_MINIMUM);
+        return Math.max(initialElo + deltaElo, ELO_MINIMUM); // Используем deltaElo для обновления ELO
     }
-    
     
 }
