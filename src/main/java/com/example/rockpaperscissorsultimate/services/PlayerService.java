@@ -1,7 +1,8 @@
 package com.example.rockpaperscissorsultimate.services;
 
+import com.example.rockpaperscissorsultimate.utils.constants.PlayerConstants;
 import com.example.rockpaperscissorsultimate.utils.dtos.CreatePlayerRequest;
-import com.example.rockpaperscissorsultimate.utils.exceptions.Player.CreatePlayerFailedException;
+import com.example.rockpaperscissorsultimate.utils.exceptions.Player.FailedToCreatePlayerException;
 import com.example.rockpaperscissorsultimate.utils.exceptions.Player.PlayerNotFoundException;
 import com.example.rockpaperscissorsultimate.models.Player;
 import com.example.rockpaperscissorsultimate.repositories.PlayerRepository;
@@ -29,10 +30,10 @@ public class PlayerService {
         Player newPlayer = Player.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
+                .name(request.getName())
                 .passwordHash(passwordHash)
-                .coins(0L)
-                .elo(0)
-                .draws(0)
+                .coins(PlayerConstants.BALANCE_START)
+                .elo(PlayerConstants.ELO_MINIMUM)
                 .loses(0)
                 .wins(0)
                 .build();
@@ -40,7 +41,7 @@ public class PlayerService {
         try{
             return playerRepository.save(newPlayer);
         }catch (Exception exception){
-            throw new CreatePlayerFailedException("An error occurred when registering a player");
+            throw new FailedToCreatePlayerException("An error occurred when registering a player");
         }
 
     }
@@ -63,11 +64,11 @@ public class PlayerService {
         return player;
     }
 
-    public Player updatePlayer(Player entity){
-        return playerRepository.save(entity);
+    public void updatePlayer(Player entity){
+        playerRepository.save(entity);
     }
     
-    public void deletePlayer(UUID id){
+    public void deletePlayerById(UUID id){
         playerRepository.deleteById(id);
     }
 }

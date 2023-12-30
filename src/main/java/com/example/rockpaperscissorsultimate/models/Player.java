@@ -24,31 +24,13 @@ public class Player {
     private UUID id;
     
     private String username;
-    
     private String name;
-    
     private String email;
-    
     private int wins;
-    
     private int loses;
-    
-    private int draws;
-    
     private int elo;
-    
     private Long coins;
-    
     private String passwordHash;
     
-    public void ChangeBalance(long bet){
-        coins+=bet;
-    }
-    public void IncreaseElo(){
-        elo+= ELO_CHANGE;
-    }
     
-    public void DecreaseElo(){
-
-    }
 }
