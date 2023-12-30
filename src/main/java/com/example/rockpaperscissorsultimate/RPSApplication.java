@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TicTacToeUltimateApplication {
+public class RPSApplication {
     
     public static void main(String[] args) {
-        SpringApplication.run(TicTacToeUltimateApplication.class, args);
+        SpringApplication.run(RPSApplication.class, args);
     }
     
 }
