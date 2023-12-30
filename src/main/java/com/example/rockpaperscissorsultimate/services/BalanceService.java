@@ -17,8 +17,8 @@ public class BalanceService {
     }
     
     private static Long getChangedBalance(Long initialAmount, Long bet) {
-        if ((bet > 0 && Long.MAX_VALUE - bet < initialAmount) ||
-                (bet < 0 && initialAmount < Long.MIN_VALUE + bet)) {
+        
+        if (initialAmount + bet < 0) {
             throw new InvalidUpdatingBalanceException("Updating the balance is not possible");
         }
         return initialAmount + bet;

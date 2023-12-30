@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-//TODO: Переделать отношения между сущностями, нынешняя версия абсолютно неправильная
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,13 +20,16 @@ public class Game {
     @GeneratedValue
     private UUID id;
     
-    @OneToOne
+    @ManyToOne
     private Player winner;
     
-    @OneToOne
+    @ManyToOne
     private Player loser;
     
+    @Enumerated(EnumType.STRING)
     private PlayerChoice winnerChoice;
+    
+    @Enumerated(EnumType.STRING)
     private PlayerChoice loserChoice;
     private Long bet;
 }

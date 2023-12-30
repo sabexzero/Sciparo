@@ -5,6 +5,7 @@ import com.example.rockpaperscissorsultimate.models.Player;
 import com.example.rockpaperscissorsultimate.repositories.GameRepository;
 import com.example.rockpaperscissorsultimate.utils.dtos.RegisterGameResultRequest;
 import com.example.rockpaperscissorsultimate.utils.exceptions.Game.FailedToCreateGameException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class GameService {
     private final StatsService statsService;
     private final PlayerService playerService;
     
-    //TODO: Обязательно реализовать транзакции
+    @Transactional
     public Game conductGame(RegisterGameResultRequest request){
         Player winner = playerService.getPlayerById(request.getWinnerId());
         Player loser = playerService.getPlayerById(request.getLoserId());

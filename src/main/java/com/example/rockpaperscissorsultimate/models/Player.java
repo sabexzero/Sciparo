@@ -1,8 +1,6 @@
 package com.example.rockpaperscissorsultimate.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,5 +30,7 @@ public class Player {
     private Long coins;
     private String passwordHash;
     
+    @ManyToOne
+    private Role role;
     
 }
