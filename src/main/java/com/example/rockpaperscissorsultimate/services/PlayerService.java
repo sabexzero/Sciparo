@@ -8,9 +8,17 @@ import com.example.rockpaperscissorsultimate.models.Player;
 import com.example.rockpaperscissorsultimate.repositories.PlayerRepository;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +27,7 @@ import java.util.UUID;
 //TODO: Продумать, какие методы еще могут пригодится при обработке пользователей
 //TODO: Добавить валидацию данных
 //TODO: Начать писать тесты, проверять покрытие
-public class PlayerService {
+public class PlayerService implements UserDetailsService {
     
     private final PlayerRepository playerRepository;
     private final PasswordEncoder passwordEncoder;
@@ -70,5 +78,19 @@ public class PlayerService {
     
     public void deletePlayerById(UUID id){
         playerRepository.deleteById(id);
+    }
+    
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Player player = getPlayerByName(username);
+        if(player == null)
+            throw new UsernameNotFoundException("Username not found");
+        
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(player.getRole().getTitle()));
+        return new User(
+                player.getUsername(),
+                player.getPasswordHash(),
+                authorities) {
+        };
     }
 }
