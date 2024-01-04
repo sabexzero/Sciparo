@@ -2,7 +2,6 @@ package com.example.rockpaperscissorsultimate.controllers;
 
 import com.example.rockpaperscissorsultimate.models.Player;
 import com.example.rockpaperscissorsultimate.services.PlayerService;
-import com.example.rockpaperscissorsultimate.services.RoleService;
 import com.example.rockpaperscissorsultimate.utils.dtos.CreatePlayerRequest;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -18,14 +17,11 @@ import java.util.UUID;
 @RequestMapping("/players")
 public class PlayersController {
     private final PlayerService playerService;
-    private final RoleService roleService;
     
     @Transactional
     @PostMapping("/create")
     public ResponseEntity<Player> createPlayer(@RequestBody CreatePlayerRequest dto) {
         Player newPLayer = playerService.createPlayer(dto);
-        roleService.setPlayerRole(newPLayer,roleService.getRoleByName("USER"));
-        
         return new ResponseEntity<>(newPLayer, HttpStatus.OK);
     }
     

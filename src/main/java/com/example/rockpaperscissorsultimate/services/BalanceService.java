@@ -5,8 +5,7 @@ import com.example.rockpaperscissorsultimate.models.Player;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
-@AllArgsConstructor
+@Service@AllArgsConstructor
 public class BalanceService {
     private final PlayerService playerService;
     

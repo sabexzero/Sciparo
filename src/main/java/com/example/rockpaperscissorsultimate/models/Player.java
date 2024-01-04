@@ -30,7 +30,4 @@ public class Player {
     private Long coins;
     private String passwordHash;
     
-    @ManyToOne
-    private Role role;
-    
 }
