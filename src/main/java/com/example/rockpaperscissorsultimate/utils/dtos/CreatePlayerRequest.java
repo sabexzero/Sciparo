@@ -19,9 +19,7 @@ public class CreatePlayerRequest {
     @NotNull(message = "Email cannot be empty")
     private String email;
     
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{6,}$",
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$",
             message = "The password must contain at least one digit, one lowercase and one uppercase letter and be at least 6 characters long")
     private String passwordText;
-    
-    private String name;
 }

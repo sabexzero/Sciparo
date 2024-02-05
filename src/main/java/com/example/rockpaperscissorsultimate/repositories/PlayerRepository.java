@@ -1,12 +1,10 @@
 package com.example.rockpaperscissorsultimate.repositories;
 
 import com.example.rockpaperscissorsultimate.models.Player;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.UUID;
 
-@Repository
-public interface PlayerRepository extends JpaRepository<Player, UUID> {
+public interface PlayerRepository extends MongoRepository<Player, String> {
     public Player findByUsername(String username);
 }

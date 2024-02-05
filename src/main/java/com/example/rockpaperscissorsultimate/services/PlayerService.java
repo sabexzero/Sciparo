@@ -23,7 +23,6 @@ public class PlayerService {
         Player newPlayer = Player.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .name(request.getName())
                 .passwordHash(request.getPasswordText())
                 .coins(PlayerConstants.BALANCE_START)
                 .elo(PlayerConstants.ELO_MINIMUM)
@@ -43,7 +42,7 @@ public class PlayerService {
         return playerRepository.findAll();
     }
     
-    public Player getPlayerById(UUID id){
+    public Player getPlayerById(String id){
         var player = playerRepository.findById(id).orElse(null);
         if(player == null)
             throw new PlayerNotFoundException("The player was not found");
@@ -61,7 +60,7 @@ public class PlayerService {
         playerRepository.save(entity);
     }
     
-    public void deletePlayerById(UUID id){
+    public void deletePlayerById(String id){
         playerRepository.deleteById(id);
     }
     

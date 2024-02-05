@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <title>Lobby Page</title>
+    <style>
+        #lobby-container {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+
+<button onclick="createLobby()">Создать лобби</button>
+
+<table id="lobby-table">
+    <thead>
+    <tr>
+        <th>Идентификатор лобби</th>
+        <th>Статус лобби</th>
+        <th>Количество игроков</th>
+        <th>Присоединиться к лобби</th>
+    </tr>
+    </thead>
+    <tbody id="lobby-table-body"></tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+    function createLobby() {
+        stompClient.send("/app/createNewLobby", {});
+    }
+
+    function getLobbies() {
+        fetch('getAllLobbies')
+            .then(response => response.json())
+            .then(data => {
+                renderLobbiesTable(data);
+            })
+            .catch(error => console.error('Error:', error));
+        console.log("жопа");
+    }
+
+    function renderLobbiesTable(lobbies) {
+        const tableBody = $('#lobby-table-body');
+
+        tableBody.empty();
+
+        lobbies.forEach(lobby => {
+            const row = $('<tr>');
+            const idCell = $('<td>').text(lobby.id);
+            const statusCell = $('<td>').text(lobby.status);
+            const playersCountCell = $('<td>').text(lobby.players.length);
+
+            const joinButton = $('<button>')
+                .text('Присоединиться')
+                .val(lobby.id) // Устанавливаем значение кнопки равным идентификатору лобби
+                .click(() => {
+                    // Обработчик события при нажатии кнопки "Присоединиться"
+                    const lobbyId = $(joinButton).val();
+                    joinLobby(lobbyId);
+                });
+
+            const joinCell = $('<td>').append(joinButton);
+
+            row.append(idCell, statusCell, playersCountCell, joinCell);
+            tableBody.append(row);
+        });
+    }
+
+    function joinLobby(lobbyId) {
+        stompClient.send("/app/joinPlayerLobby", {}, lobbyId);
+    }
+    getLobbies();
+
+
+
+    socket.addEventListener('message', (event) => {
+        const message = event.data.toString();
+
+        if (message.includes('CONNECTED')) {
+            console.log('WebSocket connected');
+        } else if (message.indexOf('cr') !== -1) {
+            getLobbies();
+        } else {
+            // Дополнительная обработка
+        }
+    });
+
+    stompClient.connect({}, function () {
+        console.log('Connected to WebSocket');
+        subscribeToLobbyTopic();
+    });
+
+    function subscribeToLobbyTopic() {
+        stompClient.subscribe('/topic/lobby', function (message) {
+            $("#lobbyStatus").text(message.body);
+        });
+    }
+
+</script>
+
+</body>
+</html>

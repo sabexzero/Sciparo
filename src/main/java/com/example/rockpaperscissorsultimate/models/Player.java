@@ -1,10 +1,11 @@
 package com.example.rockpaperscissorsultimate.models;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.UUID;
 
@@ -15,14 +16,12 @@ import static com.example.rockpaperscissorsultimate.utils.constants.PlayerConsta
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@Document(collection  = "players")
 public class Player {
     @Id
-    @GeneratedValue
-    private UUID id;
+    private String id;
     
     private String username;
-    private String name;
     private String email;
     private int wins;
     private int loses;

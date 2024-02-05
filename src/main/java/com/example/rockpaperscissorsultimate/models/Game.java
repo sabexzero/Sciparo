@@ -1,35 +1,29 @@
 package com.example.rockpaperscissorsultimate.models;
 
 
+import com.example.rockpaperscissorsultimate.utils.enums.LobbyStatus;
 import com.example.rockpaperscissorsultimate.utils.enums.PlayerChoice;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
-
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@Document(collection = "games")
 public class Game {
     @Id
-    @GeneratedValue
-    private UUID id;
+    private String id;
     
-    @ManyToOne
-    private Player winner;
+    @DBRef
+    private Lobby lobby;
     
-    @ManyToOne
-    private Player loser;
+    private PlayerChoice player1Choice;
     
-    @Enumerated(EnumType.STRING)
-    private PlayerChoice winnerChoice;
-    
-    @Enumerated(EnumType.STRING)
-    private PlayerChoice loserChoice;
-    private Long bet;
+    private PlayerChoice player2Choice;
 }

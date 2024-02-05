@@ -15,10 +15,10 @@ import java.util.UUID;
 public class RegisterGameResultRequest {
     
     @NotNull(message = "The winner's ID is a required field")
-    private UUID winnerId;
+    private Long winnerId;
     
     @NotNull(message = "The loser's ID is a required field")
-    private UUID loserId;
+    private Long loserId;
     
     @Min(value = 5, message = "Bet must be at least 5")
     @Max(value = 1_000_000, message = "Bet must be at most 1,000,000")
