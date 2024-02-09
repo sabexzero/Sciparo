@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 public class BalanceService {
     private final PlayerService playerService;
     
-    public void updatePlayerBalance(Player entity, long bet, boolean isWinner){
+    public void updatePlayerBalance(Player entity, int bet, boolean isWinner){
         var deltaBet = isWinner ? bet : -bet;
         entity.setCoins(getChangedBalance(entity.getCoins(),deltaBet));
         playerService.updatePlayer(entity);
     }
     
-    private static Long getChangedBalance(Long initialAmount, Long bet) {
+    private static Long getChangedBalance(Long initialAmount, int bet) {
         
         if (initialAmount + bet < 0) {
             throw new InvalidUpdatingBalanceException("Updating the balance is not possible");

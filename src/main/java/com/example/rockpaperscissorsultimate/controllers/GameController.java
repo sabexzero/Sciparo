@@ -2,68 +2,62 @@ package com.example.rockpaperscissorsultimate.controllers;
 
 import com.example.rockpaperscissorsultimate.models.Lobby;
 import com.example.rockpaperscissorsultimate.services.GameService;
-import com.example.rockpaperscissorsultimate.services.LobbyService;
-import com.example.rockpaperscissorsultimate.services.PlayerService;
+import com.example.rockpaperscissorsultimate.utils.dtos.MoveResponse;
+import com.example.rockpaperscissorsultimate.utils.dtos.RegisterMoveRequest;
+import com.example.rockpaperscissorsultimate.utils.game.GameUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Controller
 @AllArgsConstructor
-@RequestMapping("/rps")
+@CrossOrigin(origins = "*")
+@RequestMapping("/game")
 public class GameController {
     
     private final SimpMessagingTemplate messagingTemplate;
-    private final LobbyService lobbyService;
-    private final PlayerService playerService;
     private final GameService gameService;
     
-    @GetMapping("/")
     public String index(){
         return "index";
     }
     
-    //TODO: Change to constant, create messagesConstant for webSockets and paths
-    @MessageMapping("/createNewLobby")
-    public HttpStatus createLobby(){
-        String topic = "/topic/lobby";
+    @MessageMapping("/registerGame")
+    public HttpStatus registerGame(Lobby lobby){
         try {
-            lobbyService.createLobby();
-            messagingTemplate.convertAndSend(topic,"cr");
+            gameService.createGame(lobby);
+            
+            String topic = "/topic/game/" + lobby.getId(); //We are creating a connection using the lobby id for the game
+            
+            messagingTemplate.convertAndSend(topic, GameUtils.GAME_START_MESSAGE);
+            
             return HttpStatus.OK;
         }catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
+            return HttpStatus.BAD_REQUEST;
         }
     }
-    
-    @MessageMapping("/joinPlayerLobby")
-    @SendTo("/topic/lobby/{lobbyId}")
-    public HttpStatus joinPlayerInLobby(String lobbyId, String playerId){
-        
-        String topic = "/topic/lobby/" + lobbyId;
-        
+    @MessageMapping("/registerMove")
+    public HttpStatus registerMove(RegisterMoveRequest request){
         try {
-            gameService.joinPlayerLobby(lobbyId,playerId);
-            //TODO: Change to constant, create messagesConstant for webSockets
-            messagingTemplate.convertAndSend(topic,"player join lobby");
+            String topic = "/topic/game/" + request.getLobbyId();
+            
+            MoveResponse moveResponse = gameService.registerMove(request);
+            
+            messagingTemplate.convertAndSend(topic, GameUtils.getRoundResultString(moveResponse.getGame().getRoundsAmount(),moveResponse.getMoveResult().toString()));
+            
+            if(moveResponse.isLastMove()){
+                gameService.conductGame(moveResponse.getGame());
+                messagingTemplate.convertAndSend(topic, GameUtils.getGameResultString(moveResponse.getMoveResult().toString()));
+            }
+            
             return HttpStatus.OK;
         }catch (Exception ex){
             return HttpStatus.BAD_REQUEST;
         }
     }
     
-    @ResponseBody
-    @GetMapping("/getAllLobbies")
-    public List<Lobby> getAllLobbies(){
-        return lobbyService.getAllLobbies();
-    }
 }

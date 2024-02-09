@@ -25,7 +25,9 @@ public class Player {
     private String email;
     private int wins;
     private int loses;
+    private int draws;
     private int elo;
+    private int gamesAmount;
     private Long coins;
     private String passwordHash;
     

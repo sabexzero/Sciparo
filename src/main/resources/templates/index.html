@@ -38,11 +38,38 @@
     const socket = new SockJS('/ws');
     const stompClient = Stomp.over(socket);
     function createLobby() {
-        stompClient.send("/app/createNewLobby", {});
+
+        const request = {
+            creatorId: "65c666dbc08b5a5f3dd084f1",
+            bet: 1000
+        }
+
+        console.log(request);
+
+        fetch('/lobby/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
+
+/*    function createLobby() {
+        stompClient.send("/app/sendKek", "jopa");
+    }*/
+
     function getLobbies() {
-        fetch('getAllLobbies')
+        fetch('lobby/getAll')
             .then(response => response.json())
             .then(data => {
                 renderLobbiesTable(data);
@@ -60,7 +87,7 @@
             const row = $('<tr>');
             const idCell = $('<td>').text(lobby.id);
             const statusCell = $('<td>').text(lobby.status);
-            const playersCountCell = $('<td>').text(lobby.players.length);
+            const playersCountCell = $('<td>').text(lobby.playersId.length);
 
             const joinButton = $('<button>')
                 .text('Присоединиться')
@@ -79,7 +106,26 @@
     }
 
     function joinLobby(lobbyId) {
-        stompClient.send("/app/joinPlayerLobby", {}, lobbyId);
+        const request = {
+            lobbyId: lobbyId,
+            playerId: '65c67b65fc2c922220debd12'
+        };
+
+        fetch('/lobby/joinPlayer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
     getLobbies();
 

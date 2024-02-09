@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -45,14 +44,14 @@ public class PlayerService {
     public Player getPlayerById(String id){
         var player = playerRepository.findById(id).orElse(null);
         if(player == null)
-            throw new PlayerNotFoundException("The player was not found");
+            throw new PlayerNotFoundException();
         return player;
     }
     
     public Player getPlayerByName(String findName){
     var player = playerRepository.findByUsername(findName);
         if(player == null)
-            throw new PlayerNotFoundException("The player was not found");
+            throw new PlayerNotFoundException();
         return player;
     }
 
