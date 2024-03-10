@@ -2,7 +2,7 @@ name: MainChecker
 on: push
 jobs:
   run-unit-tests:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: CheckOut
         uses: actions/checkout@v4
