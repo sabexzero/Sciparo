@@ -1,7 +1,7 @@
 name: MainChecker
 on: push
 jobs:
-  run-unit-tests:
+  run-jobs:
     runs-on: ubuntu-latest
     steps:
       - name: CheckOut
@@ -12,11 +12,6 @@ jobs:
         with:
           java-version: 21
           distribution: 'adopt'
-
-      - name: Setup Maven
-        uses: stCarolas/setup-maven@4.4
-        with:
-          maven-version: 3.8.2
 
       - name: Unit Tests
         run: mvn clean package
