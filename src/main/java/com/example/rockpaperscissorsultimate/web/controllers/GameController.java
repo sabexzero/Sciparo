@@ -2,10 +2,13 @@ package com.example.rockpaperscissorsultimate.web.controllers;
 
 import com.example.rockpaperscissorsultimate.domain.exceptions.game.FailedToCreateGameException;
 import com.example.rockpaperscissorsultimate.domain.game.Game;
+import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.service.GameService;
+import com.example.rockpaperscissorsultimate.service.PlayerService;
 import com.example.rockpaperscissorsultimate.utils.GameUtils;
 import com.example.rockpaperscissorsultimate.web.dto.game.CreateGameRequest;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
+import com.example.rockpaperscissorsultimate.web.dto.game.PlayerInOutRequest;
 import com.example.rockpaperscissorsultimate.web.dto.game.RegisterMoveRequest;
 import com.example.rockpaperscissorsultimate.web.mappers.interfaces.CreateRequestMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +35,7 @@ public class GameController {
     
     private final SimpMessagingTemplate messagingTemplate;
     private final GameService gameService;
+    private final PlayerService playerService;
     private final CreateRequestMapper<Game, CreateGameRequest> createGameRequestMapper;
     @MessageMapping("/games/new")
     @PostMapping("/new")
@@ -40,8 +44,12 @@ public class GameController {
             description = "Allows you to create a game based on the existing lobby, " +
                     "if all the players are gathered and ready to start the game"
     )
-    @ResponseBody
-    public void registerGame(@RequestBody @Parameter(description = "The essence of the lobby on the basis of which the game is created") CreateGameRequest request){
+
+    public void createGame(
+            @RequestBody
+            @Parameter(description = "The essence of the lobby on the basis of which the game is created")
+            CreateGameRequest request
+    ){
         String mainTopic = "/topic/game";
         try {
             Game createdGame = gameService.createGame(createGameRequestMapper.toEntity(request));
@@ -53,14 +61,45 @@ public class GameController {
             messagingTemplate.convertAndSend(mainTopic, new FailedToCreateGameException().getMessage());
         }
     }
+    
+    @MessageMapping("games/join")
+    public void joinPlayer(
+            @RequestBody
+            PlayerInOutRequest request
+    ){
+        try {
+            Player player = playerService.getPlayerById(request.playerId());
+            gameService.joinPlayer(request.gameId(),player);
+        } catch (Exception ex){
+            throw new RuntimeException(ex.getMessage());
+        }
+    }
+    
+    @MessageMapping("games/leave")
+    public void leavePlayer(
+            @RequestBody
+            PlayerInOutRequest request
+    ){
+        try {
+            Player player = playerService.getPlayerById(request.playerId());
+            gameService.removePlayer(request.gameId(),player);
+        } catch (Exception ex){
+            throw new RuntimeException(ex.getMessage());
+        }
+    }
+    
+    
     @MessageMapping("games/move")
     @PostMapping("/move")
     @Operation(
             summary = "Registers the player's move",
             description = "Registers the player's move during the game"
     )
-    @ResponseBody
-    public void registerMove(@RequestBody @Parameter(description = "The essence of the request for registration of the move") RegisterMoveRequest request){
+    public void registerMove(
+            @RequestBody
+            @Parameter(description = "The essence of the request for registration of the move")
+            RegisterMoveRequest request
+    ){
         String mainTopic = "/topic/game";
         
         try {
