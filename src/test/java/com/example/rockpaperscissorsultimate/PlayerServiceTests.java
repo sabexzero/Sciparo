@@ -1,3 +1,5 @@
+package com.example.rockpaperscissorsultimate;
+
 import com.example.rockpaperscissorsultimate.domain.exceptions.player.FailedToCreatePlayerException;
 import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.domain.player.PlayerStatus;
@@ -110,11 +112,11 @@ public class PlayerServiceTests {
     
     @Test
     public void PlayerService_CreatePlayer_ReturnsCreatedPlayer(){
-        SignUpPlayerRequest request = SignUpPlayerRequest.builder()
-                .username("testing123")
-                .email("testemail123@mail.ru")
-                .passwordText("TestingTest123")
-                .build();
+        SignUpPlayerRequest request = new SignUpPlayerRequest(
+                "testing123",
+                "testemail123@mail.ru",
+                "TestingTest123"
+                );
         
         Player createdPlayer = Player.builder()
                 .id("1")

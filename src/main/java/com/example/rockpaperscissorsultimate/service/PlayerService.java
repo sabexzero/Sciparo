@@ -8,7 +8,8 @@ import com.example.rockpaperscissorsultimate.domain.exceptions.player.FailedToCr
 import com.example.rockpaperscissorsultimate.domain.exceptions.player.PlayerNotFoundException;
 import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.repository.PlayerRepository;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -16,29 +17,37 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PlayerService {
     
     private final PlayerRepository playerRepository;
+    //TODO: Реализовать проверку валидации по другому
+    private final Validator validator;
     
-    public Player createPlayer(@NotNull SignUpPlayerRequest request){
-        Player newPlayer = Player.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .passwordHash(request.getPasswordText())
-                .coins(PlayerUtils.BALANCE_START)
-                .elo(PlayerUtils.ELO_MINIMUM)
-                .loses(0)
-                .wins(0)
-                .draws(0)
-                .playerStatus(PlayerStatus.READY)
-                .gamesAmount(0)
-                .roles(Set.of(Role.valueOf("USER")))
-                .build();
-        
+    public Player createPlayer(
+            @NotNull SignUpPlayerRequest request
+    ) throws FailedToCreatePlayerException{
+            var violations = validator.validate(request);
+            
+            if(!violations.isEmpty())
+                throw new FailedToCreatePlayerException();
+            
+            Player newPlayer = Player.builder()
+                    .username(request.username())
+                    .email(request.email())
+                    .passwordHash(request.passwordText())
+                    .coins(PlayerUtils.BALANCE_START)
+                    .elo(PlayerUtils.ELO_MINIMUM)
+                    .loses(0)
+                    .wins(0)
+                    .draws(0)
+                    .playerStatus(PlayerStatus.READY)
+                    .gamesAmount(0)
+                    .roles(Set.of(Role.valueOf("USER")))
+                    .build();
         try{
             return playerRepository.save(newPlayer);
-        }catch (Exception exception){
+        }catch (Exception ex){
             throw new FailedToCreatePlayerException();
         }
 

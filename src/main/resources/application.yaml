@@ -10,11 +10,8 @@ spring:
           github:
             client-id: f7db273e620fc3fa4cd8
             client-secret: e66cd833db1bfe0ae726b110e5ff2bdeb2cc6b98
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: RPS_DB
+  profiles:
+    active: dev
 
 security:
   jwt:
@@ -37,3 +34,4 @@ logging:
             core:
               MongoTemplate: TRACE
         security: DEBUG
+

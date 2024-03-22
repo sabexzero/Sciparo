@@ -5,6 +5,6 @@ import com.example.rockpaperscissorsultimate.domain.exceptions.general.FailedToC
 
 public class FailedToCreatePlayerException extends FailedToCreateException {
     public FailedToCreatePlayerException() {
-        super(Player.class.getName().toLowerCase());
+        super(Player.class.getSimpleName().toLowerCase());
     }
 }

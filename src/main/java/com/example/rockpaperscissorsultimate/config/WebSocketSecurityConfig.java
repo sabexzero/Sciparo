@@ -11,7 +11,9 @@ import org.springframework.security.messaging.access.intercept.MessageMatcherDel
 @EnableWebSocketSecurity
 public class WebSocketSecurityConfig {
     @Bean
-    AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
+    AuthorizationManager<Message<?>> authorizationManager(
+            MessageMatcherDelegatingAuthorizationManager.Builder messages
+    ) {
         messages
                 .simpDestMatchers("/app/**").hasRole("USER")
                 .anyMessage().authenticated();

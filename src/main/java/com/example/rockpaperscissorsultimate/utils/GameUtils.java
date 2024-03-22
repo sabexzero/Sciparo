@@ -1,11 +1,15 @@
 package com.example.rockpaperscissorsultimate.utils;
 
 import com.example.rockpaperscissorsultimate.domain.game.GameResult;
+import com.example.rockpaperscissorsultimate.domain.game.GameStatus;
 import com.example.rockpaperscissorsultimate.domain.game.PlayerChoice;
 
 public class GameUtils {
     public static final int MAX_PLAYERS = 2;
     public static final int CARDS_AMOUNT = 6;
+    public static final int MAX_BET = 1_000_000;
+    public static final int MIN_BET = 5;
+    public static GameStatus INITIAL_GAME_STATUS = GameStatus.WAITING;
     public static final String GAME_START_MESSAGE = "Game started!";
     public static String getRoundResultString(int round, String moveResult){
         return String.format("Round %d : %s ",round, moveResult);

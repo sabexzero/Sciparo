@@ -4,6 +4,7 @@ import com.example.rockpaperscissorsultimate.web.dto.validation.OnCreate;
 import com.example.rockpaperscissorsultimate.web.dto.validation.OnUpdate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
@@ -13,10 +14,8 @@ import org.hibernate.validator.constraints.Length;
  * DTO for transmitting user data, not including authorization-related data
  */
 
-@Getter
-@Setter
 @Schema(description = "Player DTO")
-public class PlayerDto {
+public record PlayerDto (
     @Schema(
             description = "Player id",
             example = "78c633dbc08y6a5f1td081f2"
@@ -25,7 +24,7 @@ public class PlayerDto {
             message = "Id must be not null.",
             groups = OnUpdate.class
     )
-    private String id;
+    String id,
     
     @Schema(
             description = "User nickname",
@@ -40,12 +39,11 @@ public class PlayerDto {
             message = "Username length must be smaller than 15 symbols.",
             groups = {OnCreate.class, OnUpdate.class}
     )
-    private String username;
+    String username,
     
-    private Integer wins;
-    
-    private Integer loses;
-    
-    private Integer draws;
-    
-}
+    Integer wins,
+    Integer loses,
+    Integer draws,
+    Integer elo,
+    Long coins
+) {}

@@ -23,9 +23,10 @@ public class Game {
     @DBRef
     private Player secondPlayer;
     
-    private String lobbyId;
     private int roundsAmount;
+    private int readyPlayers;
     private GameResult gameResult;
+    private GameStatus gameStatus;
     private Integer firstPlayerWinRounds;
     private Integer secondPlayerWinRounds;
     private Integer bet;

@@ -2,7 +2,6 @@ package com.example.rockpaperscissorsultimate.service;
 
 import com.example.rockpaperscissorsultimate.domain.exceptions.game.GameNotFoundByIdException;
 import com.example.rockpaperscissorsultimate.domain.game.Game;
-import com.example.rockpaperscissorsultimate.domain.lobby.Lobby;
 import com.example.rockpaperscissorsultimate.repository.GameRepository;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
 import com.example.rockpaperscissorsultimate.web.dto.game.RegisterMoveRequest;
@@ -36,23 +35,8 @@ public class GameService {
         }
     }
     
-    public void createGame(Lobby lobby){
-        
-        var player1 = playerService.getPlayerById(lobby.getPlayersId().get(0));
-        
-        var player2 = playerService.getPlayerById(lobby.getPlayersId().get(lobby.getPlayersId().size() - 1));
-        
-        Game game = Game.builder()
-                .firstPlayer(player1)
-                .secondPlayer(player2)
-                .firstPlayerWinRounds(0)
-                .roundsAmount(0)
-                .secondPlayerWinRounds(0)
-                .bet(lobby.getBet())
-                .lobbyId(lobby.getId())
-                .build();
-        
-        gameRepository.save(game);
+    public Game createGame(Game game){
+        return gameRepository.save(game);
     }
     
     /**
@@ -60,9 +44,9 @@ public class GameService {
      */
     public MoveResponse registerMove(RegisterMoveRequest request){
         
-        var game = gameRepository.findById(request.getLobbyId()).orElseThrow(() -> new GameNotFoundByIdException(request.getLobbyId()));
+        var game = gameRepository.findById(request.gameId()).orElseThrow(() -> new GameNotFoundByIdException(request.gameId()));
         
-        GameResult roundResult = GameUtils.determineRoundResult(request.getFirstPlayerChoice(),request.getSecondPlayerChoice());
+        GameResult roundResult = GameUtils.determineRoundResult(request.firstPlayerChoice(),request.secondPlayerChoice());
         
         if (roundResult == GameResult.PLAYER1_WON)
             game.setFirstPlayerWinRounds(game.getFirstPlayerWinRounds() + 1);

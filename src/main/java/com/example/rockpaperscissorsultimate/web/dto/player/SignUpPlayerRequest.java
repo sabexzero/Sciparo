@@ -2,11 +2,11 @@ package com.example.rockpaperscissorsultimate.web.dto.player;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Data;
 
-@Data
-public class SignUpPlayerRequest {
-    
+
+public record SignUpPlayerRequest (
     @Schema(
             description = "The user's alias",
             example = "Warrior78"
@@ -19,7 +19,7 @@ public class SignUpPlayerRequest {
     @NotBlank(
             message = "Username cannot be empty"
     )
-    private String username;
+    String username,
     
     @Schema(
             description = "Email address",
@@ -31,7 +31,8 @@ public class SignUpPlayerRequest {
     @NotBlank(
             message = "Email cannot be empty"
     )
-    private String email;
+    String email,
+    
     @Schema(
             description = "A secret sequence confirming account ownership",
             example = "my_1secret1_Password!"
@@ -44,5 +45,5 @@ public class SignUpPlayerRequest {
     @NotBlank(
             message = "Password cannot be empty"
     )
-    private String passwordText;
-}
+    String passwordText
+) {}
