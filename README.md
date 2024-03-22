@@ -1,9 +1,5 @@
-# Проект "Sciparo API"
+# Sciparo API
 
-Этот проект представляет собой open-source API для игры "Камень, ножницы, бумага" реализованной в стиле карточной игры. Он разработан на основе Spring Boot.
+This project is an open-source API for the game "Rock, Paper, scissors" implemented in the style of a card game. It is developed based on Spring Boot.
 
-## О проекте
-## Планы на развитие проекта
-
-После завершения данной версии API планируется реализация реактивной версии проекта.
-[Клиентская часть приложения](https://github.com/n0sebleeded/react-rockpaperscissors)
+[Client](https://github.com/n0sebleeded/react-sciparo)
