@@ -2,6 +2,7 @@ package com.example.rockpaperscissorsultimate.service;
 
 import com.example.rockpaperscissorsultimate.domain.exceptions.game.GameNotFoundByIdException;
 import com.example.rockpaperscissorsultimate.domain.game.Game;
+import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.repository.GameRepository;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
 import com.example.rockpaperscissorsultimate.web.dto.game.RegisterMoveRequest;
@@ -9,6 +10,10 @@ import com.example.rockpaperscissorsultimate.domain.game.GameResult;
 import com.example.rockpaperscissorsultimate.utils.GameUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.MethodNotAllowedException;
+
+import javax.naming.OperationNotSupportedException;
+import java.security.InvalidParameterException;
 
 @AllArgsConstructor
 @Service
@@ -17,9 +22,10 @@ public class GameService {
     private final GameRepository gameRepository;
     
     private final StatsService statsService;
-    private final PlayerService playerService;
     
-    public void conductGame(Game endedGame){
+    public void conductGame(
+            Game endedGame
+    ){
         
         int deltaWins = endedGame.getFirstPlayerWinRounds() - endedGame.getSecondPlayerWinRounds();
         
@@ -35,14 +41,67 @@ public class GameService {
         }
     }
     
-    public Game createGame(Game game){
+    public Game createGame(
+            Game game
+    ){
         return gameRepository.save(game);
+    }
+    
+    public void joinPlayer(
+            String gameId,
+            Player player
+    ) throws GameNotFoundByIdException{
+        Game gameToJoin = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        gameToJoin.setSecondPlayer(player);
+        gameRepository.save(gameToJoin);
+    }
+    
+    public void removePlayer(
+            String gameId,
+            Player player
+    ) throws RuntimeException{
+        Game gameToJoin = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        if(gameToJoin.getFirstPlayer().equals(player)){
+            gameToJoin.setFirstPlayer(null);
+        } else if (gameToJoin.getSecondPlayer().equals(player)) {
+            gameToJoin.setSecondPlayer(null);
+        } else{
+            //TODO: Constant message
+            throw new IllegalArgumentException("Player not found in this game");
+        }
+        gameRepository.save(gameToJoin);
+    }
+    
+    public void addReadyStatus(
+            String gameId
+    ){
+        Game game = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        if(game.getReadyPlayers() != GameUtils.MAX_PLAYERS){
+            game.setReadyPlayers(game.getReadyPlayers()+1);
+            gameRepository.save(game);
+        } else{
+            throw new UnsupportedOperationException("All players are ready");
+        }
+    }
+    
+    public void removeReadyStatus(
+            String gameId
+    ){
+        Game game = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        if(game.getReadyPlayers() != 0){
+            game.setReadyPlayers(game.getReadyPlayers()-1);
+            gameRepository.save(game);
+        } else{
+            throw new UnsupportedOperationException("No one of players are ready");
+        }
     }
     
     /**
      * If the game continues, true. otherwise false
      */
-    public MoveResponse registerMove(RegisterMoveRequest request){
+    public MoveResponse registerMove(
+            RegisterMoveRequest request
+    ){
         
         var game = gameRepository.findById(request.gameId()).orElseThrow(() -> new GameNotFoundByIdException(request.gameId()));
         
