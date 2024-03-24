@@ -9,7 +9,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 
-//Config
+//Config for swagger
 @OpenAPIDefinition(
         info = @Info(
                 title = "Sciparo Api",
