@@ -5,6 +5,9 @@ import com.example.rockpaperscissorsultimate.domain.game.GameStatus;
 import com.example.rockpaperscissorsultimate.domain.game.PlayerChoice;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
 
+/**
+ * The class contains the necessary constants for the operation of GameService and GameController
+ */
 public class GameUtils {
     //Game Constants
     public static final int MAX_PLAYERS = 2;
