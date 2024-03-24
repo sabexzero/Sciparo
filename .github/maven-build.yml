@@ -1,9 +1,5 @@
 name: maven-build
-on:
-  push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+on: push
 
 
 jobs:
