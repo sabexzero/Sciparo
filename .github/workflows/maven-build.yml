@@ -1,10 +1,7 @@
 name: maven-build
 on:
   push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
-
+    branch: ["master", "main"]
 
 jobs:
   checkstyle:
