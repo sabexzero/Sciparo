@@ -2,6 +2,7 @@ package com.example.rockpaperscissorsultimate.service;
 
 import com.example.rockpaperscissorsultimate.domain.exceptions.game.GameNotFoundByIdException;
 import com.example.rockpaperscissorsultimate.domain.game.Game;
+import com.example.rockpaperscissorsultimate.domain.game.GameStatus;
 import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.repository.GameRepository;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
@@ -42,9 +43,21 @@ public class GameService {
     }
     
     public Game createGame(
-            Game game
+            Player creator,
+            Integer bet
     ){
-        return gameRepository.save(game);
+        Game createdGame = Game.builder()
+                .bet(bet)
+                .firstPlayer(creator)
+                .secondPlayer(null)
+                .gameStatus(GameUtils.INITIAL_GAME_STATUS)
+                .gameResult(null)
+                .firstPlayerWinRounds(0)
+                .secondPlayerWinRounds(0)
+                .readyPlayers(0)
+                .roundsAmount(0)
+                .build();
+        return gameRepository.save(createdGame);
     }
     
     public void joinPlayer(
@@ -72,16 +85,22 @@ public class GameService {
         gameRepository.save(gameToJoin);
     }
     
-    public void addReadyStatus(
+    public Game addReadyStatus(
             String gameId
     ){
         Game game = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
         if(game.getReadyPlayers() != GameUtils.MAX_PLAYERS){
             game.setReadyPlayers(game.getReadyPlayers()+1);
-            gameRepository.save(game);
+            return gameRepository.save(game);
         } else{
             throw new UnsupportedOperationException("All players are ready");
         }
+    }
+    
+    public void startGame(String gameId){
+        Game gameToStart = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        gameToStart.setGameStatus(GameStatus.IN_PROGRESS);
+        gameRepository.save(gameToStart);
     }
     
     public void removeReadyStatus(

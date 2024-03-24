@@ -10,11 +10,13 @@ import com.example.rockpaperscissorsultimate.web.dto.game.CreateGameRequest;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
 import com.example.rockpaperscissorsultimate.web.dto.game.PlayerInOutRequest;
 import com.example.rockpaperscissorsultimate.web.dto.game.RegisterMoveRequest;
-import com.example.rockpaperscissorsultimate.web.mappers.interfaces.CreateRequestMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +33,10 @@ import org.springframework.web.bind.annotation.*;
         name="GameController",
         description="This controller is responsible for creating games and" +
         " performing all the actions inside each game")
-public class GameController {
+public class GameControllerRest {
     
-    private final SimpMessagingTemplate messagingTemplate;
     private final GameService gameService;
     private final PlayerService playerService;
-    private final CreateRequestMapper<Game, CreateGameRequest> createGameRequestMapper;
-    @MessageMapping("/games/new")
     @PostMapping("/new")
     @Operation(
             summary = "Creating game",
@@ -45,24 +44,45 @@ public class GameController {
                     "if all the players are gathered and ready to start the game"
     )
 
-    public void createGame(
+    public ResponseEntity<Game> createGame(
             @RequestBody
             @Parameter(description = "The essence of the lobby on the basis of which the game is created")
             CreateGameRequest request
     ){
-        String mainTopic = "/topic/game";
         try {
-            Game createdGame = gameService.createGame(createGameRequestMapper.toEntity(request));
-            String gameTopic = mainTopic + createdGame.getId();
-            
-            messagingTemplate.convertAndSend(gameTopic, GameUtils.GAME_START_MESSAGE);
-            messagingTemplate.convertAndSend(mainTopic, GameUtils.GAME_START_MESSAGE);
+            Player creator = playerService.getPlayerById(request.creatorId());
+            Game createdGame = gameService.createGame(creator,request.bet());
+            return new ResponseEntity<>(createdGame, HttpStatus.OK);
         }catch (Exception ex){
-            messagingTemplate.convertAndSend(mainTopic, new FailedToCreateGameException().getMessage());
+            throw new FailedToCreateGameException();
         }
     }
     
-    @MessageMapping("games/join")
+    @PostMapping("/ready")
+    public ResponseEntity<Object> readyPlayer(
+            @RequestBody
+            String gameId
+    ){
+        try {
+            return new ResponseEntity<>(gameService.addReadyStatus(gameId), HttpStatus.OK);
+        } catch (Exception ex){
+            return new ResponseEntity<>(ex.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @DeleteMapping ("/ready")
+    public void unreadyPlayer(
+            @RequestBody
+            String gameId
+    ){
+        try {
+            gameService.removeReadyStatus(gameId);
+        } catch (Exception ex){
+            throw new RuntimeException(ex.getMessage());
+        }
+    }
+    
+    @PostMapping("/join")
     public void joinPlayer(
             @RequestBody
             PlayerInOutRequest request
@@ -75,7 +95,7 @@ public class GameController {
         }
     }
     
-    @MessageMapping("games/leave")
+    @PostMapping("/leave")
     public void leavePlayer(
             @RequestBody
             PlayerInOutRequest request
@@ -88,8 +108,6 @@ public class GameController {
         }
     }
     
-    
-    @MessageMapping("games/move")
     @PostMapping("/move")
     @Operation(
             summary = "Registers the player's move",
@@ -100,23 +118,20 @@ public class GameController {
             @Parameter(description = "The essence of the request for registration of the move")
             RegisterMoveRequest request
     ){
-        String mainTopic = "/topic/game";
+        MoveResponse moveResponse = gameService.registerMove(request);
         
-        try {
-            String topic = "/topic/game/" + request.gameId();
-            MoveResponse moveResponse = gameService.registerMove(request);
-            
-            messagingTemplate.convertAndSend(topic, GameUtils.getRoundResultString(moveResponse.game().getRoundsAmount(),moveResponse.moveResult().toString()));
-            
-            if(moveResponse.isLastMove()){
-                gameService.conductGame(moveResponse.game());
-                messagingTemplate.convertAndSend(topic, GameUtils.getGameResultString(moveResponse.moveResult().toString()));
-            }
-            messagingTemplate.convertAndSend(mainTopic, GameUtils.GAME_START_MESSAGE);
-            
-        }catch (Exception ex){
-            messagingTemplate.convertAndSend(mainTopic, ex.getMessage());
+        if(moveResponse.isLastMove()){
+            gameService.conductGame(moveResponse.game());
         }
+    }
+    
+    @MessageMapping("games/start")
+    @PostMapping("/start")
+    public void startGame(
+            @RequestBody
+            String gameId
+    ){
+        gameService.startGame(gameId);
     }
     
 }

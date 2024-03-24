@@ -8,7 +8,7 @@ import jakarta.validation.constraints.*;
 @Schema(description = "Create game request DTO")
 public record CreateGameRequest(
         @NotNull
-        Player creator,
+        String creatorId,
         
         @Max(value = GameUtils.MAX_BET, message = "Bet must be at most 1,000,000")
         @Min(value = GameUtils.MIN_BET, message = "Bet must be at least 5")

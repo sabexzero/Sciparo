@@ -22,9 +22,6 @@ security:
 server:
   address: 0.0.0.0
 
-frontend:
-  url: http://localhost:3000
-
 logging:
   level:
     org:
