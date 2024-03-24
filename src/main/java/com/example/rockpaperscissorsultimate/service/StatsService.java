@@ -10,23 +10,22 @@ public class StatsService {
     
     private final BalanceService balanceService;
     private final EloService eloService;
-    private void registerLose(Player player, int bet){
+    public void registerLose(Player player, int bet){
         player.setLoses(player.getLoses()+1);
         balanceService.updatePlayerBalance(player,bet,false);
         eloService.updatePlayerElo(player,false);
     }
     
-    private void registerWin(Player player, int bet){
+    public void registerWin(Player player, int bet){
         player.setWins(player.getWins()+1);
         balanceService.updatePlayerBalance(player,bet,true);
         eloService.updatePlayerElo(player,true);
     }
     
-    /**
-     * If the game did not end in a draw
-     */
-    public void changeStatsAfterGame(Player winner, Player loser, int bet){
-        registerWin(winner,bet);
-        registerLose(loser,bet);
+    public void registerDraw(Player player, int bet){
+        player.setDraws(player.getDraws()+1);
+        balanceService.updatePlayerBalance(player,bet);
+        eloService.updatePlayerElo(player);
     }
+    
 }

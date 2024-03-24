@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.connector.Response;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -25,15 +23,13 @@ import org.springframework.web.bind.annotation.*;
  * performing all the actions inside each game
  */
 
-@RestController
 @AllArgsConstructor
-@RequestMapping("/games")
 @Tag(
         name="GameControllerWebSockets",
         description="This controller is responsible for creating games and" +
-                " performing all the actions inside each game by websockets")
+                " performing all the actions inside each game by websockets"
+)
 public class GameControllerWebSockets {
-    
     private final SimpMessagingTemplate messagingTemplate;
     private final GameService gameService;
     private final PlayerService playerService;
@@ -48,74 +44,43 @@ public class GameControllerWebSockets {
             @Parameter(description = "The essence of the lobby on the basis of which the game is created")
             CreateGameRequest request
     ){
-        String mainTopic = "/topic/game";
         try {
             Player creator = playerService.getPlayerById(request.creatorId());
-            Game createdGame = gameService.createGame(creator,request.bet());
-            String gameTopic = mainTopic + createdGame.getId();
+            gameService.createGame(creator,request.bet());
             
-            messagingTemplate.convertAndSend(gameTopic, GameUtils.GAME_START_MESSAGE);
-            messagingTemplate.convertAndSend(mainTopic, GameUtils.GAME_START_MESSAGE);
+            messagingTemplate.convertAndSend(
+                    GameUtils.GAME_TOPIC,
+                    GameUtils.getGameCreatedString(creator.getUsername(),request.bet())
+            );
         }catch (Exception ex){
-            messagingTemplate.convertAndSend(mainTopic, new FailedToCreateGameException().getMessage());
+            messagingTemplate.convertAndSend(
+                    GameUtils.GAME_TOPIC,
+                    new FailedToCreateGameException().getMessage()
+            );
         }
     }
     
-    @MessageMapping("games/ready")
-    public void readyPlayer(
+    @MessageMapping("games/start")
+    public void startGame(
             @RequestBody
             String gameId
     ){
-        try {
-            gameService.addReadyStatus(gameId);
-        } catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
+        String matchTopic = GameUtils.GAME_TOPIC + gameId;
+        try{
+            gameService.startGame(gameId);
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.START_MESSAGE
+            );
+        } catch(Exception ex) {
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
         }
     }
-    
-    @MessageMapping("games/unready")
-    public void unreadyPlayer(
-            @RequestBody
-            String gameId
-    ){
-        try {
-            gameService.removeReadyStatus(gameId);
-        } catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
-    }
-    
-    @MessageMapping("games/join")
-    @PostMapping("/join")
-    public void joinPlayer(
-            @RequestBody
-            PlayerInOutRequest request
-    ){
-        try {
-            Player player = playerService.getPlayerById(request.playerId());
-            gameService.joinPlayer(request.gameId(),player);
-        } catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
-    }
-    
-    @MessageMapping("games/leave")
-    @PostMapping("/leave")
-    public void leavePlayer(
-            @RequestBody
-            PlayerInOutRequest request
-    ){
-        try {
-            Player player = playerService.getPlayerById(request.playerId());
-            gameService.removePlayer(request.gameId(),player);
-        } catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
-        }
-    }
-    
     
     @MessageMapping("games/move")
-    @PostMapping("/move")
     @Operation(
             summary = "Registers the player's move",
             description = "Registers the player's move during the game"
@@ -125,32 +90,122 @@ public class GameControllerWebSockets {
             @Parameter(description = "The essence of the request for registration of the move")
             RegisterMoveRequest request
     ){
-        String mainTopic = "/topic/game";
+        String matchTopic = GameUtils.GAME_TOPIC + request.gameId();
         
         try {
-            String topic = "/topic/game/" + request.gameId();
             MoveResponse moveResponse = gameService.registerMove(request);
             
-            messagingTemplate.convertAndSend(topic, GameUtils.getRoundResultString(moveResponse.game().getRoundsAmount(),moveResponse.moveResult().toString()));
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.getRoundResultString(
+                            moveResponse.game().getRoundsAmount(),
+                            moveResponse.moveResult().toString()
+                    )
+            );
             
             if(moveResponse.isLastMove()){
-                gameService.conductGame(moveResponse.game());
-                messagingTemplate.convertAndSend(topic, GameUtils.getGameResultString(moveResponse.moveResult().toString()));
+                Game endedGame = gameService.conductGame(moveResponse.game());
+                
+                messagingTemplate.convertAndSend(
+                        matchTopic,
+                        GameUtils.getGameResultString(
+                                endedGame.getGameResult().toString()
+                        )
+                );
             }
-            messagingTemplate.convertAndSend(mainTopic, GameUtils.GAME_START_MESSAGE);
             
         }catch (Exception ex){
-            messagingTemplate.convertAndSend(mainTopic, ex.getMessage());
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
         }
     }
     
-    @MessageMapping("games/start")
-    @PostMapping("/start")
-    public void startGame(
+    @MessageMapping("games/ready")
+    public void readyPlayer(
             @RequestBody
             String gameId
     ){
-        gameService.startGame(gameId);
+        String matchTopic = GameUtils.GAME_TOPIC + gameId;
+        try {
+            Game game = gameService.addReadyStatus(gameId);
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.getMatchReadyStatusString(game.getReadyPlayers())
+            );
+            
+        } catch (Exception ex){
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
+        }
+    }
+    
+    @MessageMapping("games/unready")
+    public void unreadyPlayer(
+            @RequestBody
+            String gameId
+    ){
+        String matchTopic = GameUtils.GAME_TOPIC + gameId;
+        try {
+            Game game = gameService.removeReadyStatus(gameId);
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.getMatchReadyStatusString(game.getReadyPlayers())
+            );
+            
+        } catch (Exception ex){
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
+        }
+    }
+    
+    @MessageMapping("games/join")
+    public void joinPlayer(
+            @RequestBody
+            PlayerInOutRequest request
+    ){
+        String matchTopic = GameUtils.GAME_TOPIC + request.gameId();
+        try {
+            Player player = playerService.getPlayerById(request.playerId());
+            gameService.joinPlayer(request.gameId(),player);
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.getPlayerJoinString(player.getUsername())
+            );
+            
+        } catch (Exception ex){
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
+        }
+    }
+    
+    @MessageMapping("games/leave")
+    public void leavePlayer(
+            @RequestBody
+            PlayerInOutRequest request
+    ){
+        String matchTopic = GameUtils.GAME_TOPIC + request.gameId();
+        try {
+            Player player = playerService.getPlayerById(request.playerId());
+            gameService.leavePlayer(request.gameId(),player);
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    GameUtils.getPlayerLeaveString(player.getUsername())
+            );
+            
+        } catch (Exception ex){
+            messagingTemplate.convertAndSend(
+                    matchTopic,
+                    ex.getMessage()
+            );
+        }
     }
     
 }

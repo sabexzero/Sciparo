@@ -1,11 +1,9 @@
 package com.example.rockpaperscissorsultimate.web.controllers;
 
-import com.example.rockpaperscissorsultimate.domain.exceptions.game.FailedToCreateGameException;
 import com.example.rockpaperscissorsultimate.domain.game.Game;
 import com.example.rockpaperscissorsultimate.domain.player.Player;
 import com.example.rockpaperscissorsultimate.service.GameService;
 import com.example.rockpaperscissorsultimate.service.PlayerService;
-import com.example.rockpaperscissorsultimate.utils.GameUtils;
 import com.example.rockpaperscissorsultimate.web.dto.game.CreateGameRequest;
 import com.example.rockpaperscissorsultimate.web.dto.game.MoveResponse;
 import com.example.rockpaperscissorsultimate.web.dto.game.PlayerInOutRequest;
@@ -15,10 +13,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -44,7 +40,7 @@ public class GameControllerRest {
                     "if all the players are gathered and ready to start the game"
     )
 
-    public ResponseEntity<Game> createGame(
+    public ResponseEntity<?> createGame(
             @RequestBody
             @Parameter(description = "The essence of the lobby on the basis of which the game is created")
             CreateGameRequest request
@@ -54,12 +50,12 @@ public class GameControllerRest {
             Game createdGame = gameService.createGame(creator,request.bet());
             return new ResponseEntity<>(createdGame, HttpStatus.OK);
         }catch (Exception ex){
-            throw new FailedToCreateGameException();
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     
     @PostMapping("/ready")
-    public ResponseEntity<Object> readyPlayer(
+    public ResponseEntity<?> readyPlayer(
             @RequestBody
             String gameId
     ){
@@ -71,14 +67,14 @@ public class GameControllerRest {
     }
     
     @DeleteMapping ("/ready")
-    public void unreadyPlayer(
+    public ResponseEntity<?> unreadyPlayer(
             @RequestBody
             String gameId
     ){
         try {
-            gameService.removeReadyStatus(gameId);
+            return new ResponseEntity<>(gameService.removeReadyStatus(gameId), HttpStatus.OK);
         } catch (Exception ex){
-            throw new RuntimeException(ex.getMessage());
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     
@@ -102,7 +98,7 @@ public class GameControllerRest {
     ){
         try {
             Player player = playerService.getPlayerById(request.playerId());
-            gameService.removePlayer(request.gameId(),player);
+            gameService.leavePlayer(request.gameId(),player);
         } catch (Exception ex){
             throw new RuntimeException(ex.getMessage());
         }

@@ -14,14 +14,16 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+
+//TODO: Нужен рефакторинг
 @Service
 @RequiredArgsConstructor
 public class PlayerService {
     
     private final PlayerRepository playerRepository;
-    //TODO: Реализовать проверку валидации по другому
     private final Validator validator;
     
     public Player createPlayer(
@@ -57,32 +59,42 @@ public class PlayerService {
         return playerRepository.findAll();
     }
     
-    public Player getPlayerById(String id){
-        var player = playerRepository.findById(id).orElse(null);
-        if(player == null)
-            throw new PlayerNotFoundException(id);
-        return player;
+    public Player getPlayerById(
+            String playerId
+    ) throws PlayerNotFoundException{
+        return playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
     }
     
-    public Player getPlayerByName(String findName){
-    var player = playerRepository.findByUsername(findName);
-        if(player == null)
-            throw new PlayerNotFoundException(findName);
-        return player;
+    public Player getPlayerByName(
+            String name
+    ){
+        return playerRepository.findByUsername(name).orElseThrow(() -> new PlayerNotFoundException(name));
     }
     
-    public void changePlayerStatus(String playerId, PlayerStatus status){
-        var player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
+    public Player changePlayerStatus(
+            String playerId,
+            PlayerStatus status
+    ){
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new PlayerNotFoundException(playerId));
         player.setPlayerStatus(status);
-        playerRepository.save(player);
+        return playerRepository.save(player);
     }
 
-    public void updatePlayer(Player entity){
-        playerRepository.save(entity);
+    public Player updatePlayer(
+            Player playerToUpdate
+    ){
+        playerRepository.findById(playerToUpdate.getId())
+                .orElseThrow(() -> new PlayerNotFoundException(playerToUpdate.getId()));
+        return playerRepository.save(playerToUpdate);
     }
     
-    public void deletePlayerById(String id){
-        playerRepository.deleteById(id);
+    public void deletePlayerById(
+            String playerId
+    ) throws PlayerNotFoundException{
+        playerRepository.findById(playerId)
+                .orElseThrow(() -> new PlayerNotFoundException(playerId));
+        playerRepository.deleteById(playerId);
     }
     
 }

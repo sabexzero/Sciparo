@@ -11,10 +11,6 @@ import com.example.rockpaperscissorsultimate.domain.game.GameResult;
 import com.example.rockpaperscissorsultimate.utils.GameUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.MethodNotAllowedException;
-
-import javax.naming.OperationNotSupportedException;
-import java.security.InvalidParameterException;
 
 @AllArgsConstructor
 @Service
@@ -24,22 +20,50 @@ public class GameService {
     
     private final StatsService statsService;
     
-    public void conductGame(
+    /**
+     * Called if the response of {@link #registerMove(RegisterMoveRequest)} returned a flag isLastMove = true
+        Since the response contains the game object, this object is passed to the method, not the identifier
+      
+     * About if-statement:
+         The policy of our game is that if the match ends in a draw, the players lose only half of the bet,
+         and lose one unit of elo. This is done this way because a draw in the card game format
+         will be a fairly rare event, if there was a draw in the game,
+         then it was most likely done by the players on purpose,
+         but there are also a small number of combinations
+         when it could happen randomly, so players lose one rating unit instead of 5
+     */
+    public Game conductGame(
             Game endedGame
     ){
         
+        /*
+            We check the difference between the winning rounds of the first and second player
+            to find out the result of the match
+         */
         int deltaWins = endedGame.getFirstPlayerWinRounds() - endedGame.getSecondPlayerWinRounds();
         
+        //Means that the match did not end in a draw
         if(deltaWins != 0){
+            //First player wins
             if(deltaWins > 0){
                 endedGame.setGameResult(GameResult.PLAYER1_WON);
-                statsService.changeStatsAfterGame(endedGame.getFirstPlayer(),endedGame.getSecondPlayer(),endedGame.getBet());
+                statsService.registerWin(endedGame.getFirstPlayer(), endedGame.getBet());
+                statsService.registerLose(endedGame.getSecondPlayer(), endedGame.getBet());
             }
+            //Second player wins
             else{
                 endedGame.setGameResult(GameResult.PLAYER2_WON);
-                statsService.changeStatsAfterGame(endedGame.getSecondPlayer(),endedGame.getFirstPlayer(),endedGame.getBet());
+                statsService.registerWin(endedGame.getSecondPlayer(), endedGame.getBet());
+                statsService.registerLose(endedGame.getFirstPlayer(), endedGame.getBet());
             }
+        //Means that the match did end in a draw
+        } else{
+            endedGame.setGameResult(GameResult.DRAW);
+            statsService.registerDraw(endedGame.getFirstPlayer(),endedGame.getBet());
+            statsService.registerDraw(endedGame.getSecondPlayer(),endedGame.getBet());
         }
+        gameRepository.delete(endedGame);
+        return endedGame;
     }
     
     public Game createGame(
@@ -55,7 +79,7 @@ public class GameService {
                 .firstPlayerWinRounds(0)
                 .secondPlayerWinRounds(0)
                 .readyPlayers(0)
-                .roundsAmount(0)
+                .roundsAmount(1)
                 .build();
         return gameRepository.save(createdGame);
     }
@@ -69,7 +93,7 @@ public class GameService {
         gameRepository.save(gameToJoin);
     }
     
-    public void removePlayer(
+    public void leavePlayer(
             String gameId,
             Player player
     ) throws RuntimeException{
@@ -97,22 +121,22 @@ public class GameService {
         }
     }
     
-    public void startGame(String gameId){
-        Game gameToStart = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
-        gameToStart.setGameStatus(GameStatus.IN_PROGRESS);
-        gameRepository.save(gameToStart);
-    }
-    
-    public void removeReadyStatus(
+    public Game removeReadyStatus(
             String gameId
     ){
         Game game = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
         if(game.getReadyPlayers() != 0){
             game.setReadyPlayers(game.getReadyPlayers()-1);
-            gameRepository.save(game);
+            return gameRepository.save(game);
         } else{
             throw new UnsupportedOperationException("No one of players are ready");
         }
+    }
+    
+    public void startGame(String gameId){
+        Game gameToStart = gameRepository.findById(gameId).orElseThrow(() -> new GameNotFoundByIdException(gameId));
+        gameToStart.setGameStatus(GameStatus.IN_PROGRESS);
+        gameRepository.save(gameToStart);
     }
     
     /**
