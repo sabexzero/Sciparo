@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
  * performing all the actions inside each game
  */
 
+//TODO: realize javadoc and add swagger info for GameController
+//  labels: documentation
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/games")

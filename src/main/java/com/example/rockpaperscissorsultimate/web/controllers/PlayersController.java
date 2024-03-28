@@ -18,6 +18,10 @@ import java.util.List;
 /**
  * This controller is responsible for working with players, creating them, deleting them, etc.
  */
+
+//TODO: realize javadoc and add swagger info for PlayerController
+//  labels: documentation
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/players")

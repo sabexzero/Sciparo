@@ -26,6 +26,10 @@ import org.springframework.web.bind.annotation.RestController;
         name = "Auth Controller",
         description = "Auth API"
 )
+
+//TODO: realize javadoc and add swagger info for auth-controller
+//  labels: documentation
+
 public class AuthController {
     
     private final AuthService authService;
